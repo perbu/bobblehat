@@ -6,9 +6,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/nathany/bobblehat/sense/screen"
-	"github.com/nathany/bobblehat/sense/screen/color"
-	"github.com/nathany/bobblehat/sense/stick"
+	"github.com/perbu/bobblehat/sense/screen"
+	"github.com/perbu/bobblehat/sense/screen/color"
+	"github.com/perbu/bobblehat/sense/stick"
 )
 
 func main() {

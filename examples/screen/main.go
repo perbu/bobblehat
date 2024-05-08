@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/nathany/bobblehat/sense/screen"
-	"github.com/nathany/bobblehat/sense/screen/color"
+	"github.com/perbu/bobblehat/sense/screen"
+	"github.com/perbu/bobblehat/sense/screen/color"
 )
 
 func main() {
