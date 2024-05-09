@@ -23,6 +23,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dev, err := screen.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// create a new frame buffer
 	fb := screen.NewFrameBuffer()
@@ -73,7 +77,10 @@ loop:
 		texture.Blit(fb.Texture, 0, 0, tx, xo, yo, 8, 8)
 
 		// Draw frame buffer to the screen.
-		screen.Draw(fb)
+		err = dev.Draw(fb)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// Check if Ctrl-C was pressed
 		// while waiting a few milliseconds.
@@ -86,5 +93,8 @@ loop:
 		}
 	}
 
-	screen.Clear()
+	err = dev.Clear()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

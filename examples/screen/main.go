@@ -10,6 +10,13 @@ import (
 )
 
 func main() {
+
+	// screen device:
+	dev, err := screen.New()
+	if err != nil {
+		panic(err)
+	}
+
 	// create a new frame buffer
 	fb := screen.NewFrameBuffer()
 
@@ -36,12 +43,15 @@ func main() {
 	}
 
 	// draw the frame buffer to the screen
-	screen.Draw(fb)
+	err = dev.Draw(fb)
+	if err != nil {
+		panic(err)
+	}
 
 	// wait for Ctrl-C, then clear the screen
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGUSR1, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	screen.Clear()
+	_ = dev.Clear()
 }

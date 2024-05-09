@@ -3,10 +3,9 @@ package screen
 
 import (
 	"encoding/binary"
-	"errors"
+	"fmt"
 	"image"
 	"image/color"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +13,23 @@ import (
 	rgb565color "github.com/perbu/bobblehat/sense/screen/color"
 	"github.com/perbu/bobblehat/sense/screen/texture"
 )
+
+type Device struct {
+	name  string
+	blank *FrameBuffer
+}
+
+func New() (Device, error) {
+	name, err := getDevice("RPi-Sense FB")
+	if err != nil {
+		return Device{}, fmt.Errorf("getDevice: %w", err)
+	}
+	dev := Device{
+		name:  name,
+		blank: NewFrameBuffer(),
+	}
+	return dev, nil
+}
 
 // FrameBuffer is an 8x8 texture that can draw to the LED Matrix.
 type FrameBuffer struct {
@@ -25,11 +41,9 @@ func NewFrameBuffer(options ...func(*FrameBuffer)) *FrameBuffer {
 	fb := &FrameBuffer{
 		Texture: texture.New(8, 8),
 	}
-
 	for _, o := range options {
 		o(fb)
 	}
-
 	return fb
 }
 
@@ -48,9 +62,7 @@ func (fb *FrameBuffer) At(x, y int) color.Color {
 	if x < 0 || y < 0 || x > 7 || y > 7 {
 		return color.RGBA{}
 	}
-
 	sc := uint16(fb.GetPixel(x, y))
-
 	r := (sc & 0xF800) >> 8
 	g := (sc & 0x07E0) >> 3
 	b := (sc & 0x001F) << 3
@@ -68,13 +80,10 @@ func (fb *FrameBuffer) Set(x, y int, c color.Color) {
 	if x < 0 || y < 0 || x > 7 || y > 7 {
 		return
 	}
-
 	r, g, b, _ := c.RGBA()
-
 	if fb.Texture == nil {
 		fb.Texture = texture.New(8, 8)
 	}
-
 	fb.Texture.SetPixel(x, y, rgb565color.New(uint8(r>>8), uint8(g>>8), uint8(b>>8)))
 }
 
@@ -89,8 +98,8 @@ func (fb *FrameBuffer) SetImage(m image.Image) {
 }
 
 // DrawImage draws an image to the LED matrix screen.
-func DrawImage(m image.Image) error {
-	return Draw(NewFrameBuffer(withImage(m)))
+func (d Device) DrawImage(m image.Image) error {
+	return draw(d.name, NewFrameBuffer(withImage(m)))
 }
 
 func withImage(m image.Image) func(*FrameBuffer) {
@@ -100,27 +109,12 @@ func withImage(m image.Image) func(*FrameBuffer) {
 }
 
 // Draw a buffer to the LED matrix screen.
-func Draw(fb *FrameBuffer) error {
-	return draw(displayDevice, fb)
+func (d Device) Draw(fb *FrameBuffer) error {
+	return draw(d.name, fb)
 }
 
-var blankFrameBuffer = NewFrameBuffer()
-
-// Clear the screen (off).
-func Clear() error {
-	return draw(displayDevice, blankFrameBuffer)
-}
-
-// the LED matrix screen
-var displayDevice string
-
-func init() {
-	var err error
-
-	displayDevice, err = getDevice("RPi-Sense FB")
-	if err != nil {
-		os.Stdout.WriteString(err.Error() + "\n")
-	}
+func (d Device) Clear() error {
+	return draw(d.name, d.blank)
 }
 
 func draw(backBuffer string, fb *FrameBuffer) error {
@@ -141,7 +135,7 @@ func getDevice(name string) (string, error) {
 	}
 
 	for _, dir := range matches {
-		b, err := ioutil.ReadFile(filepath.Join(dir, "name"))
+		b, err := os.ReadFile(filepath.Join(dir, "name"))
 		if err != nil {
 			continue
 		}
@@ -151,10 +145,13 @@ func getDevice(name string) (string, error) {
 			return dev, nil
 		}
 	}
-	return "", errFrameBufferNotFound
+	return "", &NoFrameBufferError{}
 }
 
-// errors
-var (
-	errFrameBufferNotFound = errors.New("frame buffer device not found")
-)
+type NoFrameBufferError struct {
+}
+
+func (e *NoFrameBufferError) Error() string {
+	return "no frame buffer device found"
+
+}
