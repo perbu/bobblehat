@@ -6,6 +6,11 @@ A Go library for Raspberry Pi HATs (Hardware Attached on Top), starting with the
 
 ### Documentation
 
+I've used this project in a couple of projects now. Since it was abandoned, I've decided to take it over and maintain it for a while. Mostly, I've
+done this:
+ - added module
+ - got rid of init(), now you call a New function that can return an error
+
 #### Screen
 
 <img src="https://cdn.rawgit.com/perbu/bobblehat/master/gopher/screen.svg" width="200">
@@ -15,9 +20,13 @@ The Sense HAT has an 8x8 LED matrix that could be used to display the status of 
 You can create an 8x8 frame buffer, set pixels with (x,y) coordinates, and then draw the frame buffer to the screen.
 
 ```go
-fb := screen.NewFrameBuffer()
+dev, err := screen.New()
+if err != nil {
+    log.Fatal(err)
+}
+fb := dev.NewFrameBuffer()
 fb.SetPixel(0, 0, color.Red)
-screen.Draw(fb)
+dev.Draw(fb)
 ```
 
 Colors are specified as red, green, blue (RGB) components with a range of 0-255. However, these are converted down to 32 shades (0-31) before being sent to the screen.
@@ -92,42 +101,3 @@ Temperature, Humidity, Barometric pressure
 
 Not yet implemented
 
-### Gopher Gala 2016
-
-#### Team
-
-* [Carlisia Campos](https://github.com/carlisia), Developer, California, U.S.
-* [Nathan Youngman](https://github.com/nathany), Developer, Alberta, Canada
-* [Olga Shalakhina](https://github.com/osshalakhina), Illustrator, Ukraine
-* [Ravi Sastryk](https://github.com/ravisastryk), Developer, California, U.S.
-
-#### Media
-
-bobbleHAT in action:
-
-* [First light](https://www.instagram.com/p/BA5LhnHBkx0/)
-* [Scrolling gopher favicon](https://www.instagram.com/p/BA7rzTmhk_p/)
-* Follow [bobbleHAT](https://twitter.com/gobobblehat) on Twitter for more videos.
-
-Team:
-
-* [MacGyvering standoffs to use the joystick](https://twitter.com/carlisia/status/691115626891350016)
-* [Ravi working on SWIG for RTIMULib](https://twitter.com/carlisia/status/691064926509465601/photo/1)
-
-### License
-
-The code is licensed under the Simplified BSD License.
-Copyright © 2016 bobbleHAT Authors.
-
-The original Go gopher © 2009 Renée French. Used under Creative Commons Attribution 3.0 license.
-
-Illustrations © 2016 Olga Shalakhina.
-
-### Related Projects
-
-* [Gobot](http://gobot.io/)
-* [EMBD](http://embd.kidoman.io/)
-* [sense-hat](https://github.com/RPi-Distro/python-sense-hat) (Python)
-* [RTIMULib](https://github.com/RPi-Distro/RTIMULib) (C++ dependency of sense-hat)
-* [golang-evdev](https://github.com/gvalkov/golang-evdev) (Go bindings for the Linux input subsystem)
-* [evdev](https://github.com/jteeuwen/evdev) (Go implementation of the Linux evdev API)
